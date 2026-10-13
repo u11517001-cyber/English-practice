@@ -1,20 +1,20 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>英打遊戲開發歷程與打字遊戲</title>
+  <title>夜景打字冒險 Night City Typing Journey</title>
   <style>
     :root {
-      --bg-portal: #f5f3ec;
-      --text-portal: #243e38;
-      --card-bg: #ffffff;
-      --card-border: #ccd7ce;
-      --accent-green: #245e50;
-      --accent-hover: #1b473c;
-      --btn-disabled: #e2e8f0;
-      --accent-neon: #00ffcc;
-      --bg-game: #0f172a;
+      --bg-dark: #090d16;
+      --card-bg: rgba(22, 30, 49, 0.75);
+      --card-border: rgba(255, 255, 255, 0.12);
+      --accent-cyan: #00f2fe;
+      --accent-purple: #9d4edd;
+      --accent-gold: #ffd166;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
     }
 
     * {
@@ -25,210 +25,250 @@
     }
 
     body {
-      background-color: var(--bg-portal);
-      color: var(--text-portal);
+      background-color: var(--bg-dark);
+      color: var(--text-main);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* 背景星空與夜景 Canvas */
+    #bgCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
     }
 
     /* 頂部導覽列 */
     header {
-      background-color: #243e38;
-      color: white;
-      padding: 12px 24px;
+      position: relative;
+      z-index: 10;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(12px);
+      padding: 14px 28px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
     }
 
     header h1 {
-      font-size: 1.2rem;
-      font-weight: 700;
-      letter-spacing: 1px;
-    }
-
-    .nav-tabs {
+      font-size: 1.3rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #9d4edd 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
       display: flex;
+      align-items: center;
       gap: 10px;
     }
 
-    .tab-btn {
-      background: transparent;
-      border: 1px solid rgba(255,255,255,0.3);
-      color: white;
-      padding: 6px 16px;
+    .nav-btns {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-nav {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: var(--text-main);
+      padding: 8px 18px;
       border-radius: 20px;
       cursor: pointer;
       font-size: 0.9rem;
-      transition: all 0.2s ease;
+      font-weight: 600;
+      transition: all 0.25s ease;
+      backdrop-filter: blur(6px);
     }
 
-    .tab-btn.active, .tab-btn:hover {
-      background: var(--accent-neon);
+    .btn-nav:hover, .btn-nav.active {
+      background: linear-gradient(135deg, var(--accent-cyan), #4facfe);
       color: #0f172a;
-      border-color: var(--accent-neon);
-      font-weight: bold;
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
     }
 
-    /* 頁面切換容器 */
-    .view-section {
-      display: none;
+    /* 主要內容容器 */
+    .app-view {
+      position: relative;
+      z-index: 10;
       flex: 1;
+      display: none;
     }
 
-    .view-section.active {
-      display: block;
+    .app-view.active {
+      display: flex;
+      flex-direction: column;
     }
 
-    /* === 1. PORTAL 頁面樣式 (復刻教材風格) === */
+    /* === PORTAL 主選單頁面 === */
     .portal-container {
-      max-width: 1100px;
+      max-width: 1150px;
       margin: 0 auto;
       padding: 40px 24px;
+      width: 100%;
     }
 
-    .portal-subtitle {
+    .hero-banner {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .hero-tag {
+      display: inline-block;
+      padding: 4px 14px;
+      background: rgba(157, 78, 221, 0.2);
+      border: 1px solid rgba(157, 78, 221, 0.4);
+      color: #c77dff;
+      border-radius: 20px;
       font-size: 0.85rem;
       letter-spacing: 2px;
-      text-transform: uppercase;
-      color: #64748b;
-      margin-bottom: 8px;
-    }
-
-    .portal-title {
-      font-size: 2.2rem;
-      font-weight: 800;
-      color: var(--text-portal);
       margin-bottom: 12px;
     }
 
-    .portal-desc {
-      color: #527066;
-      font-size: 1rem;
-      margin-bottom: 36px;
+    .hero-title {
+      font-size: 2.5rem;
+      font-weight: 900;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      color: #ffffff;
+      text-shadow: 0 0 20px rgba(0, 242, 254, 0.3);
     }
 
-    .card-grid {
+    .hero-desc {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      max-width: 650px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* 三大模式卡片 */
+    .mode-cards-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 28px;
+      margin-bottom: 40px;
     }
 
-    .portal-card {
+    .mode-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 16px;
-      padding: 24px;
+      border-radius: 24px;
+      padding: 28px;
+      backdrop-filter: blur(16px);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
 
-    .portal-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    .mode-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 4px;
+      background: linear-gradient(90deg, transparent, var(--card-color, var(--accent-cyan)), transparent);
+      opacity: 0.7;
     }
 
-    .card-ver {
+    .mode-card:hover {
+      transform: translateY(-8px);
+      border-color: var(--card-color, var(--accent-cyan));
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 25px rgba(0, 242, 254, 0.15);
+    }
+
+    .card-icon {
+      font-size: 2.8rem;
+      margin-bottom: 16px;
+      display: inline-block;
+    }
+
+    .card-badge {
       font-size: 0.75rem;
       letter-spacing: 1.5px;
-      color: #88998e;
+      color: var(--card-color, var(--accent-cyan));
+      font-weight: 700;
       text-transform: uppercase;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
 
-    .card-name {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--text-portal);
+    .card-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #fff;
       margin-bottom: 12px;
     }
 
-    .card-detail {
+    .card-body {
+      color: var(--text-muted);
       font-size: 0.95rem;
-      color: #4a635d;
-      line-height: 1.5;
+      line-height: 1.6;
       margin-bottom: 24px;
-      flex-grow: 1;
+      flex: 1;
     }
 
-    .url-input-group {
-      margin-bottom: 16px;
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 20px;
     }
 
-    .url-input {
-      width: 100%;
-      padding: 8px 12px;
-      border: 1px solid #ccd7ce;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      margin-bottom: 8px;
-      outline: none;
-    }
-
-    .url-input:focus {
-      border-color: var(--accent-green);
-    }
-
-    .action-btn {
-      width: 100%;
-      padding: 12px;
+    .card-tag-item {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 3px 10px;
       border-radius: 12px;
+      font-size: 0.78rem;
+      color: #cbd5e1;
+    }
+
+    .btn-play {
+      width: 100%;
+      padding: 14px;
+      border-radius: 16px;
       border: none;
-      font-size: 0.95rem;
-      font-weight: 600;
+      font-size: 1rem;
+      font-weight: 700;
       cursor: pointer;
-      text-align: center;
-      text-decoration: none;
-      display: inline-block;
-      transition: background-color 0.2s ease;
+      background: linear-gradient(135deg, var(--card-color, var(--accent-cyan)), #2563eb);
+      color: #0f172a;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     }
 
-    .btn-green {
-      background-color: var(--accent-green);
-      color: white;
+    .btn-play:hover {
+      filter: brightness(1.15);
+      transform: scale(1.02);
     }
 
-    .btn-green:hover {
-      background-color: var(--accent-hover);
-    }
-
-    .btn-secondary {
-      background-color: #e5ece2;
-      color: var(--text-portal);
-      border: 1px solid #ccd7ce;
-    }
-
-    .btn-secondary:hover {
-      background-color: #d2ded0;
-    }
-
-    /* === 2. GAME 霓虹遊戲頁面樣式 === */
+    /* === GAME 遊戲頁面 === */
     .game-body {
-      background-color: var(--bg-game);
-      color: #fff;
-      min-height: calc(100vh - 53px);
+      flex: 1;
       display: flex;
       flex-direction: column;
       position: relative;
-      overflow: hidden;
     }
 
     .game-hud {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 16px 32px;
+      padding: 14px 28px;
       background: rgba(15, 23, 42, 0.8);
-      backdrop-filter: blur(8px);
-      border-bottom: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      z-index: 5;
     }
 
     .hud-stat {
@@ -238,32 +278,33 @@
     }
 
     .hud-label {
-      font-size: 0.75rem;
-      color: #94a3b8;
+      font-size: 0.72rem;
+      color: var(--text-muted);
       letter-spacing: 1px;
     }
 
     .hud-value {
-      font-size: 1.4rem;
-      font-weight: 700;
+      font-size: 1.35rem;
+      font-weight: 800;
       color: #38bdf8;
     }
 
     .hud-value.highlight {
-      color: var(--accent-neon);
+      color: var(--accent-cyan);
     }
 
-    .speed-control-box {
+    .speed-box {
       display: flex;
       align-items: center;
       gap: 10px;
       background: rgba(255,255,255,0.05);
-      padding: 6px 16px;
+      padding: 6px 14px;
       border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
     }
 
     .speed-slider {
-      accent-color: var(--accent-neon);
+      accent-color: var(--accent-cyan);
       cursor: pointer;
     }
 
@@ -278,18 +319,19 @@
       display: block;
       width: 100%;
       height: 100%;
-      background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
     }
 
     /* 虛擬鍵盤 */
     .keyboard-container {
-      background: rgba(15, 23, 42, 0.95);
-      border-top: 1px solid rgba(255,255,255,0.1);
-      padding: 16px;
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding: 14px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
+      z-index: 5;
     }
 
     .kb-row {
@@ -298,33 +340,33 @@
     }
 
     .key {
-      width: 40px;
-      height: 40px;
+      width: 38px;
+      height: 38px;
       border-radius: 8px;
-      background: #1e293b;
-      border: 1px solid #334155;
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid rgba(255,255,255,0.1);
       color: #94a3b8;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: bold;
-      font-size: 0.9rem;
+      font-weight: 700;
+      font-size: 0.85rem;
       transition: all 0.1s ease;
     }
 
     .key.active {
-      background: var(--accent-neon);
+      background: var(--accent-cyan);
       color: #0f172a;
-      box-shadow: 0 0 12px var(--accent-neon);
+      box-shadow: 0 0 12px var(--accent-cyan);
       transform: translateY(2px);
     }
 
-    /* 彈出視窗 Modal (過關 / 遊戲結束) */
+    /* Modal 彈出視窗 */
     .modal-overlay {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(12px);
+      background: rgba(9, 13, 22, 0.85);
+      backdrop-filter: blur(16px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -340,135 +382,131 @@
     }
 
     .modal-content {
-      background: #1e293b;
-      border: 2px solid var(--accent-neon);
-      border-radius: 20px;
-      padding: 36px 48px;
+      background: rgba(30, 41, 59, 0.95);
+      border: 2px solid var(--accent-cyan);
+      border-radius: 24px;
+      padding: 36px 44px;
       text-align: center;
-      box-shadow: 0 0 30px rgba(0, 255, 204, 0.3);
-      max-width: 420px;
+      box-shadow: 0 0 40px rgba(0, 242, 254, 0.3);
+      max-width: 440px;
       width: 90%;
     }
 
     .modal-title {
       font-size: 2rem;
-      color: var(--accent-neon);
+      color: var(--accent-cyan);
       margin-bottom: 12px;
+      font-weight: 900;
     }
 
     .modal-desc {
       color: #cbd5e1;
       margin-bottom: 24px;
       font-size: 1rem;
+      line-height: 1.5;
     }
 
     .modal-stats {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
-      background: #0f172a;
+      background: rgba(15, 23, 42, 0.8);
       padding: 16px;
-      border-radius: 12px;
+      border-radius: 16px;
       margin-bottom: 24px;
+      border: 1px solid rgba(255,255,255,0.05);
     }
 
     .modal-stat-val {
-      font-size: 1.5rem;
-      font-weight: bold;
+      font-size: 1.6rem;
+      font-weight: 800;
       color: #38bdf8;
     }
   </style>
 </head>
 <body>
 
-  <!-- 頂部導覽頁籤 -->
+  <!-- 夜景與動態星空 Canvas -->
+  <canvas id="bgCanvas"></canvas>
+
+  <!-- 頂部導覽列 -->
   <header>
-    <h1>英打學習歷程遊戲平台</h1>
-    <div class="nav-tabs">
-      <button class="tab-btn active" onclick="switchView('portal')">📂 開發歷程 Portal</button>
-      <button class="tab-btn" onclick="switchView('game')">🎮 霓虹遊戲 Arena</button>
+    <h1>🌌 夜景打字冒險 Night City Typing</h1>
+    <div class="nav-btns">
+      <button class="btn-nav active" onclick="switchView('portal')">📂 模式選單 Portal</button>
+      <button class="btn-nav" onclick="switchView('game')">🎮 進入遊戲 Arena</button>
     </div>
   </header>
 
-  <!-- 1. 開發歷程 PORTAL 頁面 -->
-  <div id="portal-view" class="view-section active">
+  <!-- 1. PORTAL 主選單頁面 -->
+  <div id="portal-view" class="app-view active">
     <main class="portal-container">
-      <p class="portal-subtitle">MY TYPING JOURNEY</p>
-      <h2 class="portal-title">英打遊戲開發歷程</h2>
-      <p class="portal-desc">從第一個頁面開始，記錄每一次完成的小進步。</p>
+      <div class="hero-banner">
+        <span class="hero-tag">SELECT YOUR CHALLENGE</span>
+        <h2 class="hero-title">精選夜景打字練習模式</h2>
+        <p class="hero-desc">在璀璨繁星與城市夜景下，鍛鍊您的英打反應速力與肌肉記憶。</p>
+      </div>
 
-      <div class="card-grid">
-        <!-- 版本 1 -->
-        <article class="portal-card">
+      <div class="mode-cards-grid">
+        <!-- 模式 1 -->
+        <article class="mode-card" style="--card-color: #00f2fe;">
           <div>
-            <p class="card-ver">VERSION 01</p>
-            <h3 class="card-name">版本 1</h3>
-            <p class="card-detail">一個標題、一個按鈕。我的第一次網站部署。</p>
-          </div>
-          <div>
-            <div class="url-input-group">
-              <input type="text" id="url-v1" class="url-input" placeholder="貼上你的網址..." onchange="saveUrl('v1', this.value)">
+            <span class="card-icon">🔤</span>
+            <div class="card-badge">MODE 01 · FOUNDATION</div>
+            <h3 class="card-title">簡單字母練習</h3>
+            <p class="card-body">適合打字初學者！掉落單一英文字母，建立手指對 26 個英文字母的精準定位與反射神經。</p>
+            <div class="card-tags">
+              <span class="card-tag-item">單字母掉落</span>
+              <span class="card-tag-item">基礎反射</span>
+              <span class="card-tag-item">高亮鍵盤</span>
             </div>
-            <button id="btn-v1" class="action-btn btn-secondary" onclick="openUrl('v1')">先設定網站網址</button>
           </div>
+          <button class="btn-play" onclick="startMode('mode1')">開始字母練習 ➔</button>
         </article>
 
-        <!-- 版本 2 -->
-        <article class="portal-card">
+        <!-- 模式 2 -->
+        <article class="mode-card" style="--card-color: #38bdf8;">
           <div>
-            <p class="card-ver">VERSION 02</p>
-            <h3 class="card-name">版本 2</h3>
-            <p class="card-detail">加入外部圖片與聲音，讓遊戲預告有了聲音。</p>
-          </div>
-          <div>
-            <div class="url-input-group">
-              <input type="text" id="url-v2" class="url-input" placeholder="貼上你的網址..." onchange="saveUrl('v2', this.value)">
+            <span class="card-icon">🏙️</span>
+            <div class="card-badge">MODE 02 · SPEED RUN</div>
+            <h3 class="card-title">短城市名練習</h3>
+            <p class="card-body">精選全球 4~5 個字母的知名短名城市（如 TOKYO, PARIS, ROME, SEOUL），快速體驗拼寫節奏。</p>
+            <div class="card-tags">
+              <span class="card-tag-item">4~5 字母短城</span>
+              <span class="card-tag-item">標靶鎖定</span>
+              <span class="card-tag-item">節奏拼寫</span>
             </div>
-            <button id="btn-v2" class="action-btn btn-secondary" onclick="openUrl('v2')">先設定網站網址</button>
           </div>
+          <button class="btn-play" onclick="startMode('mode2')">開始短城市練習 ➔</button>
         </article>
 
-        <!-- 版本 3 -->
-        <article class="portal-card">
+        <!-- 模式 3 -->
+        <article class="mode-card" style="--card-color: #ffd166;">
           <div>
-            <p class="card-ver">VERSION 03</p>
-            <h3 class="card-name">版本 3</h3>
-            <p class="card-detail">左手 ASDF 打字練習。</p>
+            <span class="card-icon">🎌</span>
+            <div class="card-badge">MODE 03 · JAPAN & GLOBAL</div>
+            <h3 class="card-title">長短混合城市練習</h3>
+            <p class="card-body">加入大量日本熱門城市（TOKYO, KYOTO, OSAKA, YOKOHAMA, FUKUOKA, HAKODATE…）與國際大都市，挑戰終極手速！</p>
+            <div class="card-tags">
+              <span class="card-tag-item">特選日本城市</span>
+              <span class="card-tag-item">國際大都市</span>
+              <span class="card-tag-item">長短難度混合</span>
+            </div>
           </div>
-          <button class="action-btn btn-green" onclick="startMode('v3')">開始練習</button>
-        </article>
-
-        <!-- 版本 4 -->
-        <article class="portal-card">
-          <div>
-            <p class="card-ver">VERSION 04</p>
-            <h3 class="card-name">版本 4</h3>
-            <p class="card-detail">十個按鍵，接住從天空落下的字母（含速度控制）。</p>
-          </div>
-          <button class="action-btn btn-green" onclick="startMode('v4')">開始練習</button>
-        </article>
-
-        <!-- 版本 5 -->
-        <article class="portal-card">
-          <div>
-            <p class="card-ver">VERSION 05</p>
-            <h3 class="card-name">版本 5</h3>
-            <p class="card-detail">多階段漸進挑戰，過關放煙火與完整成績統計。</p>
-          </div>
-          <button class="action-btn btn-green" onclick="startMode('v5')">🚀 進入闖關模式</button>
+          <button class="btn-play" onclick="startMode('mode3')" style="background: linear-gradient(135deg, #ffd166, #f59e0b);">🎌 開始日本/混合練習 ➔</button>
         </article>
       </div>
     </main>
   </div>
 
-  <!-- 2. 打字遊戲 ARENA 頁面 -->
-  <div id="game-view" class="view-section">
+  <!-- 2. GAME 遊戲畫布頁面 -->
+  <div id="game-view" class="app-view">
     <div class="game-body">
       <!-- HUD 狀態欄 -->
       <div class="game-hud">
         <div class="hud-stat">
-          <span class="hud-label">目前模式 / 關卡</span>
-          <span id="hud-mode" class="hud-value highlight">Stage 1</span>
+          <span class="hud-label">練習模式</span>
+          <span id="hud-mode" class="hud-value highlight">簡單字母練習</span>
         </div>
         <div class="hud-stat">
           <span class="hud-label">得分</span>
@@ -479,30 +517,29 @@
           <span id="hud-combo" class="hud-value">0</span>
         </div>
         <div class="hud-stat">
-          <span class="hud-label">WPM (速度)</span>
+          <span class="hud-label">WPM (打字速度)</span>
           <span id="hud-wpm" class="hud-value">0</span>
         </div>
         <div class="hud-stat">
           <span class="hud-label">生命值</span>
           <span id="hud-lives" class="hud-value">❤️❤️❤️</span>
         </div>
-        <!-- 速度控制滑桿 (v4/v5 可調) -->
-        <div class="speed-control-box">
+        <div class="speed-box">
           <span class="hud-label">速度</span>
           <input type="range" id="speedSlider" class="speed-slider" min="1" max="5" step="0.5" value="1.5">
-          <span id="speedVal" style="font-size:0.85rem; color:#00ffcc;">1.5x</span>
+          <span id="speedVal" style="font-size:0.85rem; color:#00f2fe; font-weight:bold;">1.5x</span>
         </div>
       </div>
 
-      <!-- Canvas 繪圖區 -->
+      <!-- 遊戲 Canvas -->
       <div class="game-canvas-container">
         <canvas id="gameCanvas"></canvas>
 
-        <!-- 遊戲訊息 Overlays -->
+        <!-- 彈出視窗 -->
         <div id="gameModal" class="modal-overlay">
           <div class="modal-content">
             <h2 id="modalTitle" class="modal-title">階段完成！</h2>
-            <p id="modalDesc" class="modal-desc">太棒了，你成功擊落了所有字母！</p>
+            <p id="modalDesc" class="modal-desc">太棒了，夜景下的所有目標皆已被您精準擊落！</p>
             <div class="modal-stats">
               <div>
                 <div class="hud-label">最終得分</div>
@@ -513,12 +550,12 @@
                 <div id="modalWpm" class="modal-stat-val">0</div>
               </div>
             </div>
-            <button id="modalBtn" class="action-btn btn-green" onclick="nextStage()">進入下一關 ➔</button>
+            <button id="modalBtn" class="btn-play" onclick="restartGame()">再次挑戰 🔄</button>
           </div>
         </div>
       </div>
 
-      <!-- 虛擬鍵盤顯示 -->
+      <!-- 虛擬鍵盤 -->
       <div class="keyboard-container">
         <div class="kb-row">
           <div class="key" id="key-Q">Q</div><div class="key" id="key-W">W</div><div class="key" id="key-E">E</div>
@@ -539,69 +576,100 @@
   </div>
 
   <script>
-    /* === 1. PORTAL 頁面網址儲存機制 === */
-    window.addEventListener('DOMContentLoaded', () => {
-      ['v1', 'v2'].forEach(ver => {
-        const savedUrl = localStorage.getItem('typing_url_' + ver);
-        if (savedUrl) {
-          document.getElementById('url-' + ver).value = savedUrl;
-          updateBtnState(ver, savedUrl);
-        }
+    /* === 1. 背景夜空與城市剪影繪製 === */
+    const bgCanvas = document.getElementById('bgCanvas');
+    const bgCtx = bgCanvas.getContext('2d');
+    let stars = [];
+
+    function initBgCanvas() {
+      bgCanvas.width = window.innerWidth;
+      bgCanvas.height = window.innerHeight;
+      stars = [];
+      for (let i = 0; i < 120; i++) {
+        stars.push({
+          x: Math.random() * bgCanvas.width,
+          y: Math.random() * (bgCanvas.height * 0.7),
+          radius: Math.random() * 1.8 + 0.5,
+          alpha: Math.random(),
+          speed: Math.random() * 0.02 + 0.005
+        });
+      }
+    }
+    window.addEventListener('resize', initBgCanvas);
+    initBgCanvas();
+
+    function renderBg() {
+      bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+
+      // 夜空漸層
+      const grad = bgCtx.createLinearGradient(0, 0, 0, bgCanvas.height);
+      grad.addColorStop(0, '#070a12');
+      grad.addColorStop(0.5, '#0f172a');
+      grad.addColorStop(1, '#1e1b4b');
+      bgCtx.fillStyle = grad;
+      bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+
+      // 閃爍星星
+      stars.forEach(s => {
+        s.alpha += s.speed;
+        if (s.alpha > 1 || s.alpha < 0) s.speed = -s.speed;
+        bgCtx.beginPath();
+        bgCtx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+        bgCtx.fillStyle = `rgba(255, 255, 255, ${Math.abs(s.alpha)})`;
+        bgCtx.fill();
       });
-    });
 
-    function saveUrl(ver, val) {
-      localStorage.setItem('typing_url_' + ver, val.trim());
-      updateBtnState(ver, val.trim());
+      // 遠處城市剪影與霓虹燈光效果
+      drawCitySkyline();
+
+      requestAnimationFrame(renderBg);
     }
+    renderBg();
 
-    function updateBtnState(ver, val) {
-      const btn = document.getElementById('btn-' + ver);
-      if (val) {
-        btn.textContent = '前往檢視 ↗';
-        btn.className = 'action-btn btn-green';
-      } else {
-        btn.textContent = '先設定網站網址';
-        btn.className = 'action-btn btn-secondary';
+    function drawCitySkyline() {
+      const h = bgCanvas.height;
+      const w = bgCanvas.width;
+
+      bgCtx.fillStyle = "rgba(10, 15, 28, 0.9)";
+      bgCtx.beginPath();
+      bgCtx.moveTo(0, h);
+
+      // 模擬幾何城市大樓線條
+      const bWidth = 45;
+      for (let x = 0; x < w; x += bWidth) {
+        let bHeight = 80 + Math.sin(x * 0.01) * 40 + Math.cos(x * 0.03) * 30;
+        bgCtx.lineTo(x, h - bHeight);
+        bgCtx.lineTo(x + bWidth - 5, h - bHeight);
       }
+      bgCtx.lineTo(w, h);
+      bgCtx.fill();
     }
 
-    function openUrl(ver) {
-      const url = localStorage.getItem('typing_url_' + ver);
-      if (url) {
-        window.open(url.startsWith('http') ? url : 'https://' + url, '_blank');
-      } else {
-        alert('請先在輸入框貼上該版本的部署網址！');
-      }
-    }
-
-    /* === 2. 視圖切換與遊戲啟動 === */
-    let currentMode = 'v5';
-    let currentStage = 1;
+    /* === 2. 視圖切換與模式設定 === */
+    let currentMode = 'mode1';
 
     function switchView(viewName) {
-      document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.app-view').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.btn-nav').forEach(el => el.classList.remove('active'));
 
       if (viewName === 'portal') {
         document.getElementById('portal-view').classList.add('active');
-        document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        document.querySelectorAll('.btn-nav')[0].classList.add('active');
         stopGame();
       } else {
         document.getElementById('game-view').classList.add('active');
-        document.querySelectorAll('.tab-btn')[1].classList.add('active');
-        resizeCanvas();
+        document.querySelectorAll('.btn-nav')[1].classList.add('active');
+        resizeGameCanvas();
         startGame();
       }
     }
 
-    function startMode(mode) {
-      currentMode = mode;
-      currentStage = 1;
+    function startMode(modeKey) {
+      currentMode = modeKey;
       switchView('game');
     }
 
-    /* === 3. WEB AUDIO API 聲學音效 === */
+    /* === 3. WEB AUDIO 音效 === */
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
     function playSound(type) {
@@ -615,20 +683,28 @@
 
       if (type === 'hit') {
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(440, now);
-        osc.frequency.exponentialRampToValueAtTime(880, now + 0.1);
-        gain.gain.setValueAtTime(0.3, now);
-        gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+        osc.frequency.setValueAtTime(523.25, now);
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
         osc.start(now);
-        osc.stop(now + 0.1);
+        osc.stop(now + 0.08);
+      } else if (type === 'word_complete') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(659.25, now);
+        osc.frequency.exponentialRampToValueAtTime(1318.51, now + 0.18);
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.18);
+        osc.start(now);
+        osc.stop(now + 0.18);
       } else if (type === 'miss') {
         osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(180, now);
-        osc.frequency.linearRampToValueAtTime(80, now + 0.2);
-        gain.gain.setValueAtTime(0.4, now);
-        gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+        osc.frequency.linearRampToValueAtTime(80, now + 0.18);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.18);
         osc.start(now);
-        osc.stop(now + 0.2);
+        osc.stop(now + 0.18);
       } else if (type === 'clear') {
         [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
           const subOsc = audioCtx.createOscillator();
@@ -644,33 +720,47 @@
       }
     }
 
-    /* === 4. 遊戲核心邏輯 (Canvas & Fireworks) === */
+    /* === 4. 城市與單字資料庫 === */
+    const cityData = {
+      // 模式 1：簡單英文字母
+      mode1: ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'],
+      // 模式 2：短城市名
+      mode2: ['TOKYO', 'PARIS', 'ROME', 'SEOUL', 'LIMA', 'DOHA', 'OSLO', 'PERTH', 'DELHI', 'CAIRO', 'KOBE', 'NARA'],
+      // 模式 3：長短混合城市名（含大量日本城市）
+      mode3: [
+        // 日本特選城市
+        'TOKYO', 'KYOTO', 'OSAKA', 'YOKOHAMA', 'SAPPORO', 'FUKUOKA', 'NAGOYA', 
+        'KOBE', 'NARA', 'HIROSHIMA', 'SENDAI', 'KANAZAWA', 'OKINAWA', 'HAKODATE', 
+        'NAGANO', 'TAKAYAMA', 'KAMAKURA', 'NIKKO', 'MATSUYAMA', 'SHIZUOKA',
+        // 全球國際大都市
+        'SINGAPORE', 'AMSTERDAM', 'VANCOUVER', 'BARCELONA', 'BANGKOK', 
+        'MELBOURNE', 'NEWYORK', 'LONDON', 'SYDNEY', 'BERLIN', 'TAIPEI'
+      ]
+    };
+
+    /* === 5. 遊戲邏輯與 CANVAS 渲染 === */
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
-    function resizeCanvas() {
+    function resizeGameCanvas() {
       canvas.width = canvas.parentElement.clientWidth;
       canvas.height = canvas.parentElement.clientHeight;
     }
-    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('resize', resizeGameCanvas);
 
-    let letters = [];
+    let items = [];
+    let activeIndex = -1;
     let particles = [];
     let fireworks = [];
     let score = 0;
     let combo = 0;
-    let totalHits = 0;
+    let totalCharsTyped = 0;
+    let completedCount = 0;
     let lives = 3;
     let gameInterval = null;
-    let animationFrame = null;
+    let animFrame = null;
     let startTime = null;
-    let targetHitsForStage = 15;
-
-    const keySets = {
-      v3: ['A', 'S', 'D', 'F'],
-      v4: ['A', 'S', 'D', 'F', 'J', 'K', 'L', 'Q', 'W', 'E'],
-      v5: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
-    };
+    let targetCount = 12;
 
     const speedSlider = document.getElementById('speedSlider');
     const speedVal = document.getElementById('speedVal');
@@ -682,9 +772,11 @@
       stopGame();
       score = 0;
       combo = 0;
-      totalHits = 0;
+      totalCharsTyped = 0;
+      completedCount = 0;
       lives = 3;
-      letters = [];
+      items = [];
+      activeIndex = -1;
       particles = [];
       fireworks = [];
       startTime = Date.now();
@@ -692,50 +784,62 @@
       updateHUD();
       document.getElementById('gameModal').classList.remove('active');
 
-      let currentKeySet = keySets.v5;
-      if (currentMode === 'v3') {
-        currentKeySet = keySets.v3;
-        document.getElementById('hud-mode').textContent = '版本 3 (ASDF 鍵位)';
-      } else if (currentMode === 'v4') {
-        currentKeySet = keySets.v4;
-        document.getElementById('hud-mode').textContent = '版本 4 (掉落測試)';
-      } else {
-        document.getElementById('hud-mode').textContent = 'Stage ' + currentStage;
-      }
+      const modeNames = {
+        mode1: '🔤 簡單字母練習',
+        mode2: '🏙️ 短城市名練習',
+        mode3: '🎌 日本/長短混合城市'
+      };
+      document.getElementById('hud-mode').textContent = modeNames[currentMode];
 
-      // 產生字母間隔
-      const spawnRate = Math.max(600, 1500 - (currentStage * 150));
+      const spawnRate = currentMode === 'mode1' ? 1000 : 2200;
       gameInterval = setInterval(() => {
-        spawnLetter(currentKeySet);
+        spawnItem();
       }, spawnRate);
 
-      render();
+      spawnItem();
+      renderGame();
     }
 
     function stopGame() {
       clearInterval(gameInterval);
-      cancelAnimationFrame(animationFrame);
+      cancelAnimationFrame(animFrame);
     }
 
-    function spawnLetter(keySet) {
-      const char = keySet[Math.floor(Math.random() * keySet.length)];
-      const radius = 24;
-      const x = Math.random() * (canvas.width - radius * 4) + radius * 2;
-      const speedMultiplier = parseFloat(speedSlider.value);
-      const speed = (1.2 + Math.random() * 0.8 + (currentStage * 0.3)) * speedMultiplier;
+    function restartGame() {
+      startGame();
+    }
 
-      letters.push({
-        char, x, y: -30, radius, speed,
-        color: `hsl(${Math.random() * 360}, 90%, 65%)`
+    function spawnItem() {
+      const list = cityData[currentMode];
+      const text = list[Math.floor(Math.random() * list.length)];
+
+      ctx.font = "bold 22px Arial";
+      const textWidth = ctx.measureText(text).width + 32;
+      const x = Math.random() * (canvas.width - textWidth - 40) + 20;
+
+      const speedMultiplier = parseFloat(speedSlider.value);
+      const baseSpeed = currentMode === 'mode1' ? 1.0 : 0.65;
+      const speed = (baseSpeed + Math.random() * 0.4) * speedMultiplier;
+
+      const colors = ['#00f2fe', '#38bdf8', '#c77dff', '#ffd166', '#4ade80', '#f472b6'];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+
+      items.push({
+        text,
+        typedIndex: 0,
+        x,
+        y: -30,
+        speed,
+        color
       });
     }
 
     function createParticles(x, y, color) {
-      for (let i = 0; i < 12; i++) {
+      for (let i = 0; i < 18; i++) {
         particles.push({
           x, y,
-          vx: (Math.random() - 0.5) * 8,
-          vy: (Math.random() - 0.5) * 8,
+          vx: (Math.random() - 0.5) * 9,
+          vy: (Math.random() - 0.5) * 9,
           radius: Math.random() * 4 + 2,
           color,
           alpha: 1
@@ -744,14 +848,14 @@
     }
 
     function createFireworks() {
-      for (let f = 0; f < 5; f++) {
+      for (let f = 0; f < 6; f++) {
         setTimeout(() => {
           const fx = Math.random() * canvas.width;
           const fy = Math.random() * (canvas.height * 0.5);
-          const color = `hsl(${Math.random() * 360}, 100%, 60%)`;
-          for (let i = 0; i < 40; i++) {
-            const angle = (Math.PI * 2 / 40) * i;
-            const spd = Math.random() * 6 + 2;
+          const color = `hsl(${Math.random() * 360}, 100%, 65%)`;
+          for (let i = 0; i < 45; i++) {
+            const angle = (Math.PI * 2 / 45) * i;
+            const spd = Math.random() * 7 + 2;
             fireworks.push({
               x: fx, y: fy,
               vx: Math.cos(angle) * spd,
@@ -760,37 +864,58 @@
             });
           }
           playSound('hit');
-        }, f * 200);
+        }, f * 180);
       }
     }
 
-    function render() {
+    function renderGame() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // 繪製掉落字母
-      for (let i = letters.length - 1; i >= 0; i--) {
-        let item = letters[i];
+      // 繪製掉落項目
+      for (let i = items.length - 1; i >= 0; i--) {
+        let item = items[i];
         item.y += item.speed;
 
-        // 繪製球體與光暈
+        ctx.font = "bold 22px Arial";
+        const textWidth = ctx.measureText(item.text).width;
+        const boxWidth = textWidth + 32;
+        const boxHeight = 42;
+
+        const isTarget = (i === activeIndex);
+
+        // 膠囊/氣泡框
         ctx.beginPath();
-        ctx.arc(item.x, item.y, item.radius, 0, Math.PI * 2);
-        ctx.fillStyle = item.color;
-        ctx.shadowColor = item.color;
-        ctx.shadowBlur = 15;
+        ctx.roundRect(item.x, item.y, boxWidth, boxHeight, 21);
+        ctx.fillStyle = isTarget ? "rgba(0, 242, 254, 0.25)" : "rgba(15, 23, 42, 0.85)";
+        ctx.strokeStyle = isTarget ? "#00f2fe" : item.color;
+        ctx.lineWidth = isTarget ? 3 : 2;
+        ctx.shadowColor = isTarget ? "#00f2fe" : item.color;
+        ctx.shadowBlur = isTarget ? 22 : 8;
         ctx.fill();
+        ctx.stroke();
         ctx.shadowBlur = 0;
 
-        // 繪製字母
-        ctx.fillStyle = "#0f172a";
-        ctx.font = "bold 22px Arial";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(item.char, item.x, item.y);
+        // 文字繪製
+        const startX = item.x + 16;
+        const startY = item.y + 27;
+        ctx.textAlign = "left";
 
-        // 觸底扣血
-        if (item.y > canvas.height + item.radius) {
-          letters.splice(i, 1);
+        const typedPart = item.text.substring(0, item.typedIndex);
+        const untypedPart = item.text.substring(item.typedIndex);
+
+        // 已輸入字母：鮮黃色高亮
+        ctx.fillStyle = "#ffd166";
+        ctx.fillText(typedPart, startX, startY);
+
+        // 未輸入字母：純白
+        const typedWidth = ctx.measureText(typedPart).width;
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(untypedPart, startX + typedWidth, startY);
+
+        // 觸底處置
+        if (item.y > canvas.height) {
+          if (i === activeIndex) activeIndex = -1;
+          items.splice(i, 1);
           combo = 0;
           lives--;
           playSound('miss');
@@ -803,12 +928,12 @@
         }
       }
 
-      // 繪製爆炸粒子
+      // 爆破粒子
       for (let i = particles.length - 1; i >= 0; i--) {
         let p = particles[i];
         p.x += p.vx;
         p.y += p.vy;
-        p.alpha -= 0.03;
+        p.alpha -= 0.035;
 
         if (p.alpha <= 0) {
           particles.splice(i, 1);
@@ -822,12 +947,12 @@
         }
       }
 
-      // 繪製煙火特效
+      // 過關煙火
       for (let i = fireworks.length - 1; i >= 0; i--) {
         let fw = fireworks[i];
         fw.x += fw.vx;
         fw.y += fw.vy;
-        fw.vy += 0.05; // 重力效果
+        fw.vy += 0.05;
         fw.alpha -= 0.015;
 
         if (fw.alpha <= 0) {
@@ -842,37 +967,89 @@
         }
       }
 
-      animationFrame = requestAnimationFrame(render);
+      animFrame = requestAnimationFrame(renderGame);
     }
 
-    // 按鍵對應觸發
+    /* === 6. 按鍵響應 === */
     window.addEventListener('keydown', (e) => {
       const pressedKey = e.key.toUpperCase();
 
-      // 虛擬鍵盤視覺回饋
       const kbKey = document.getElementById('key-' + pressedKey);
       if (kbKey) {
         kbKey.classList.add('active');
         setTimeout(() => kbKey.classList.remove('active'), 150);
       }
 
-      // 遊戲判定
-      let hitIndex = letters.findIndex(item => item.char === pressedKey);
-      if (hitIndex !== -1) {
-        let item = letters[hitIndex];
-        createParticles(item.x, item.y, item.color);
-        letters.splice(hitIndex, 1);
+      if (!/^[A-Z]$/.test(pressedKey)) return;
 
-        score += 10 + (combo * 2);
-        combo++;
-        totalHits++;
-        playSound('hit');
-        updateHUD();
+      // 如果已有鎖定目標
+      if (activeIndex !== -1 && activeIndex < items.length) {
+        let target = items[activeIndex];
+        let nextChar = target.text[target.typedIndex];
 
-        // 檢查闖關成功
-        if (currentMode === 'v5' && totalHits >= targetHitsForStage) {
-          handleStageClear();
+        if (pressedKey === nextChar) {
+          target.typedIndex++;
+          totalCharsTyped++;
+          score += 5;
+          playSound('hit');
+
+          if (target.typedIndex === target.text.length) {
+            createParticles(target.x + 40, target.y + 20, target.color);
+            items.splice(activeIndex, 1);
+            activeIndex = -1;
+            completedCount++;
+            score += 25 + (combo * 5);
+            combo++;
+            playSound('word_complete');
+
+            if (completedCount >= targetCount) {
+              handleStageClear();
+            }
+          }
+          updateHUD();
+          return;
         }
+      }
+
+      // 若無鎖定或打錯，尋找最靠下且開頭相符的目標
+      let bestIndex = -1;
+      let maxY = -999;
+
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].typedIndex === 0 && items[i].text[0] === pressedKey) {
+          if (items[i].y > maxY) {
+            maxY = items[i].y;
+            bestIndex = i;
+          }
+        }
+      }
+
+      if (bestIndex !== -1) {
+        activeIndex = bestIndex;
+        let target = items[activeIndex];
+        target.typedIndex = 1;
+        totalCharsTyped++;
+        score += 5;
+        playSound('hit');
+
+        if (target.typedIndex === target.text.length) {
+          createParticles(target.x + 40, target.y + 20, target.color);
+          items.splice(activeIndex, 1);
+          activeIndex = -1;
+          completedCount++;
+          score += 25 + (combo * 5);
+          combo++;
+          playSound('word_complete');
+
+          if (completedCount >= targetCount) {
+            handleStageClear();
+          }
+        }
+        updateHUD();
+      } else {
+        combo = 0;
+        playSound('miss');
+        updateHUD();
       }
     });
 
@@ -881,7 +1058,7 @@
       document.getElementById('hud-combo').textContent = combo;
 
       const elapsedMinutes = (Date.now() - (startTime || Date.now())) / 60000;
-      const wpm = elapsedMinutes > 0 ? Math.round((totalHits / 5) / elapsedMinutes) : 0;
+      const wpm = elapsedMinutes > 0 ? Math.round((totalCharsTyped / 5) / elapsedMinutes) : 0;
       document.getElementById('hud-wpm').textContent = wpm;
 
       document.getElementById('hud-lives').textContent = '❤️'.repeat(Math.max(0, lives));
@@ -893,22 +1070,13 @@
       createFireworks();
 
       const modal = document.getElementById('gameModal');
-      document.getElementById('modalTitle').textContent = '🎉 Stage ' + currentStage + ' 完成！';
-      document.getElementById('modalDesc').textContent = '放煙火慶祝！你已準備好進入下一階段！';
+      document.getElementById('modalTitle').textContent = '🎉 挑戰成功！';
+      document.getElementById('modalDesc').textContent = '太厲害了！在美麗的城市夜景下順利擊落所有目標！';
       document.getElementById('modalScore').textContent = score;
       document.getElementById('modalWpm').textContent = document.getElementById('hud-wpm').textContent;
 
-      if (currentStage >= 5) {
-        document.getElementById('modalTitle').textContent = '🏆 恭喜通關全部階段！';
-        document.getElementById('modalBtn').textContent = '回到歷程 Portal';
-        document.getElementById('modalBtn').onclick = () => switchView('portal');
-      } else {
-        document.getElementById('modalBtn').textContent = '進入下一關 ➔';
-        document.getElementById('modalBtn').onclick = () => {
-          currentStage++;
-          startGame();
-        };
-      }
+      document.getElementById('modalBtn').textContent = '回到主選單 Portal ➔';
+      document.getElementById('modalBtn').onclick = () => switchView('portal');
 
       modal.classList.add('active');
     }
@@ -918,7 +1086,7 @@
       const modal = document.getElementById('gameModal');
       document.getElementById('modalTitle').textContent = '💥 GAME OVER';
       document.getElementById('modalTitle').style.color = '#ef4444';
-      document.getElementById('modalDesc').textContent = '字母掉落太多囉，再接再厲！';
+      document.getElementById('modalDesc').textContent = '目標掉落過多，再挑戰一次吧！';
       document.getElementById('modalScore').textContent = score;
       document.getElementById('modalWpm').textContent = document.getElementById('hud-wpm').textContent;
 
